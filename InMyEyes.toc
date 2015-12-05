@@ -1,0 +1,9 @@
+## Interface: 40300
+## Title: InMyEyes
+## Notes: Hides unwanted nameplates
+## Version: 1.0
+## Author: Lanrutcon
+## DefaultState: Enabled
+## SavedVariables: InMyEyesSV
+
+InMyEyes.lua
