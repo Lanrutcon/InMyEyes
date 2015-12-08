@@ -12,10 +12,13 @@ local function searchNamePlates(frame,...)
 		return;
 	end
 	
-	if nameplatesCache[frame] and forbiddenNameplates[select(4, frame:GetRegions()):GetText()] then
+	if nameplatesCache[frame] and forbiddenNameplates[select(2, frame:GetChildren()):GetRegions():GetText()] then
 		frame:Hide();
 	elseif not nameplatesCache[frame] and strfind(frame:GetName() or "","NamePlate") then
-		local name = select(4, frame:GetRegions()):GetText();
+	
+		local _, nameFrame = frame:GetChildren():
+		local name = nameFrame:GetRegions():GetText();
+		
 		if forbiddenNameplates[name] then
 			frame:Hide();
 		end
