@@ -1,4 +1,4 @@
-## Interface: 40300
+## Interface: 50400
 ## Title: InMyEyes
 ## Notes: Hides unwanted nameplates
 ## Version: 1.0
