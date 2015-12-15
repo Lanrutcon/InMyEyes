@@ -16,7 +16,7 @@ local function searchNamePlates(frame,...)
 		frame:Hide();
 	elseif not nameplatesCache[frame] and strfind(frame:GetName() or "","NamePlate") then
 	
-		local _, nameFrame = frame:GetChildren():
+		local _, nameFrame = frame:GetChildren();
 		local name = nameFrame:GetRegions():GetText();
 		
 		if forbiddenNameplates[name] then
