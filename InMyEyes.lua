@@ -1,34 +1,57 @@
 local Addon = CreateFrame("FRAME", "InMyEyes");
 
+--"Localing" most used functions
 local select = select;
 local strfind = string.find;
+local pairs = pairs;
 
+--Table with the unwanted names
 local forbiddenNameplates;
+--Table with all searched nameplates
 local nameplatesCache = {};
 
 
-local function searchNamePlates(frame,...)
-	if not frame then
-		return;
+-------------------------------------
+--
+-- Checks its name. If it's in the "forbidden list", the frame hides itself.
+-- When searching the nameplates, all nameplates will have this function hooked to "OnShow" event.
+-- @param #frame self : the frame that will call this function
+--
+-------------------------------------
+local function checkName(self)
+	if forbiddenNameplates[select(4, self:GetRegions()):GetText()] then
+		self:Hide();
 	end
-	
-	if nameplatesCache[frame] and forbiddenNameplates[select(4, frame:GetRegions()):GetText()] then
-		frame:Hide();
-	elseif not nameplatesCache[frame] and strfind(frame:GetName() or "","NamePlate") then
-		local name = select(4, frame:GetRegions()):GetText();
-		if forbiddenNameplates[name] then
-			frame:Hide();
-		end
+end
 
-		-- Store in cache
-		nameplatesCache[frame] = true;
+
+-------------------------------------
+--
+-- Searches for nameplates that WorldFrame contains.
+--
+-------------------------------------
+local function searchNamePlates()
+	
+	local worldFrames = { WorldFrame:GetChildren() };
+
+	for num, frame in pairs(worldFrames) do
+		if not nameplatesCache[frame] and strfind(frame:GetName() or "","NamePlate") then
+			frame:HookScript("OnShow", checkName)			
+			-- Store in cache
+			nameplatesCache[frame] = true;
+		end
 	end
-	return searchNamePlates(...);
 end
 
 
 SLASH_InMyEyes1, SLASH_InMyEyes2 = "/inmyeyes", "/ime";
 
+-------------------------------------
+--
+-- Slash command function.
+-- @param #string cmd: the command that player calls
+--
+-------------------------------------
 function SlashCmd(cmd)
 	if (cmd:match"add ") then
 		forbiddenNameplates[string.sub(cmd, strfind(cmd, "add ")+4)] = true;
@@ -39,25 +62,46 @@ function SlashCmd(cmd)
 		for k,_ in pairs(forbiddenNameplates) do
 			SendSystemMessage(k);
 		end
+	else
+		SendSystemMessage("InMyEyes - Commands:");
+		SendSystemMessage("/ime add NPC's name");
+		SendSystemMessage("/ime remove NPC's name");
+		SendSystemMessage("/ime list");
 	end
 end
 
 SlashCmdList["InMyEyes"] = SlashCmd;
 
 
-local total = 0;
+local numChidlren;
+-------------------------------------
+--
+-- Addon SetScript OnUpdate
+-- Calls "searchNamePlates" function whenever the WorldFrame gains/loses a frame
+--
+-------------------------------------
 Addon:SetScript("OnUpdate", function(self, elapsed)
-	total = total + elapsed;
-	if(total > 0.05) then
-		total = 0;
-		searchNamePlates(WorldFrame:GetChildren());
+	if (WorldFrame:GetNumChildren() ~= numChidlren) then
+		numChidlren = WorldFrame:GetNumChildren();
+		searchNamePlates();
 	end
 end);
 
 
+-------------------------------------
+--
+-- Addon SetScript OnEvent
+-- Clears the cache when player changes zones and handles the SavedVariables.
+--
+-- Handled events:
+-- "ZONE_CHANGED"
+-- "VARIABLES_LOADED"
+--
+-------------------------------------
 Addon:SetScript("OnEvent", function(self, event, ...)
 	if(event == "ZONE_CHANGED") then
 		wipe(nameplatesCache);
+		searchNamePlates();
 	else --VARIABLES_LOADED
 		if type(InMyEyesSV) ~= "table" then
 			InMyEyesSV = {};
