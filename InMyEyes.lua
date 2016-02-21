@@ -55,6 +55,9 @@ SLASH_InMyEyes1, SLASH_InMyEyes2 = "/inmyeyes", "/ime";
 function SlashCmd(cmd)
 	if (cmd:match"add ") then
 		forbiddenNameplates[string.sub(cmd, strfind(cmd, "add ")+4)] = true;
+		for frame, _ in pairs(nameplatesCache) do
+			checkName(frame);
+		end
 	elseif (cmd:match"remove ") then
 		forbiddenNameplates[string.sub(cmd, strfind(cmd, "remove ")+7)] = nil;
 	elseif (cmd:match"list") then
