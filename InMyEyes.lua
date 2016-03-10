@@ -5,10 +5,66 @@ local select = select;
 local strfind = string.find;
 local pairs = pairs;
 
+local UnitAffectingCombat = UnitAffectingCombat;
+
 --Table with the unwanted names
 local forbiddenNameplates;
 --Table with all searched nameplates
 local nameplatesCache = {};
+
+
+-------------------------------------
+--
+-- Shows the nameplate.
+-- Blizzard blocks actions directly to the nameplate itself, while in-combat.
+-- Used when the player is in-combat.
+-- @param #nameplate self : the nameplate
+--
+-------------------------------------
+local function showNameplate(self)
+	if self.healthborder then
+		self.healthborder:Show();
+		self.glow:SetAlpha(1);
+		self.level:SetAlpha(1);
+		self.skull:SetAlpha(1);
+		self.raidicons:SetAlpha(1);
+		self.eliteicon:SetAlpha(1);
+		
+		self.castbarfill:SetAlpha(1);
+		self.castborder:SetAlpha(1);
+		self.shield:SetAlpha(1);
+		self.spellicon:SetAlpha(1);
+		
+		self.healthbarfill:SetAlpha(1);
+	end
+end
+
+
+-------------------------------------
+--
+-- Hides the nameplate.
+-- Blizzard blocks actions directly to the nameplate itself, while in-combat.
+-- Used when the player is in-combat.
+-- @param #nameplate self : the nameplate
+--
+-------------------------------------
+local function hideNameplate(self)
+	self.targetflash:SetTexture(nil);
+	self.healthborder:Hide();
+	self.glow:SetAlpha(0);
+	self.name:SetText("");
+	self.level:SetAlpha(0);
+	self.skull:SetAlpha(0);
+	self.raidicons:SetAlpha(0);
+	self.eliteicon:SetAlpha(0);
+	
+	self.castbarfill:SetAlpha(0);
+	self.castborder:SetAlpha(0);
+	self.shield:SetAlpha(0);
+	self.spellicon:SetAlpha(0);
+	
+	self.healthbarfill:SetAlpha(0);
+end
 
 
 -------------------------------------
@@ -20,7 +76,20 @@ local nameplatesCache = {};
 -------------------------------------
 local function checkName(self)
 	if forbiddenNameplates[select(4, self:GetRegions()):GetText()] then
-		self:Hide();
+		if UnitAffectingCombat("player") then
+		
+			local healthbar, castbar = self:GetChildren();
+			self.targetflash, self.healthborder, self.glow, self.name, self.level, self.skull, self.raidicons, self.eliteicon = self:GetRegions();
+			self.castbarfill, self.castborder, self.shield, self.spellicon = castbar:GetRegions();
+			self.healthbarfill = healthbar:GetRegions();
+			
+			hideNameplate(self);
+			
+		else
+			self:Hide();
+		end
+	else
+		showNameplate(self);
 	end
 end
 
@@ -102,7 +171,7 @@ end);
 --
 -------------------------------------
 Addon:SetScript("OnEvent", function(self, event, ...)
-	if(event == "ZONE_CHANGED") then
+	if (event == "ZONE_CHANGED") then
 		wipe(nameplatesCache);
 		searchNamePlates();
 	else --VARIABLES_LOADED
